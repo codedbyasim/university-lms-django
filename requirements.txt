@@ -1,0 +1,4 @@
+Django>=5.0,<5.1
+psycopg2-binary>=2.9.0  # PostgreSQL adapter
+Pillow>=10.0.0          # Required for ImageField (user avatars)
+python-dotenv>=1.0.0    # For environment variables

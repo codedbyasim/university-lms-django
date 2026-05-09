@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Teacher Dashboard</h1>
+        <p class="lead">Welcome, {{ user.username }}! Here you can manage your assigned courses, lectures, and assignments.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">My Courses</h5>
+                <p class="card-text">View courses assigned to you.</p>
+                <a href="{% url 'teacher_courses' %}" class="btn btn-primary btn-sm">View My Courses</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Grade Assignments</h5>
+                <p class="card-text">View and grade student submissions.</p>
+                <a href="{% url 'teacher_submissions' %}" class="btn btn-primary btn-sm">Grade Submissions</a>
+            </div>
+        </div>
+    </div>
+    <!-- Add more teacher features as needed -->
+</div>
+{% endblock %}

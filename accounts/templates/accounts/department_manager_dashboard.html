@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Department Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Department Manager Dashboard</h1>
+            <p class="lead">Welcome, {{ user.username }}! You are managing the {{ user.department.name|default:"(No Department Assigned)" }} department.</p>
+            <p class="lead">Here you can manage courses and teachers for your department.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Department Courses</h5>
+                    <p class="card-text">Create, view, and manage courses within your department.</p>
+                    <a href="{% url 'create_course' %}" class="btn btn-primary btn-sm mb-2">Create Course</a>
+                    <a href="{% url 'manage_courses' %}" class="btn btn-secondary btn-sm">View/Edit Courses</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Department Teachers</h5>
+                    <p class="card-text">View and manage teachers assigned to your department.</p>
+                    <a href="#" class="btn btn-primary btn-sm">View Department Teachers</a> {# To be implemented later #}
+                </div>
+            </div>
+        </div>
+        {# Add more department manager features as needed #}
+    </div>
+</div>
+{% endblock %}

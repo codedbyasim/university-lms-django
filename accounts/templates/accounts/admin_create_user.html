@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New User{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header text-center bg-maroon text-white>
+                <h3 class="mb-0">Create New User Account</h3>
+                <p class="mb-0">Only administrators can create new user accounts.</p>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('id_role');
+    const departmentDiv = document.querySelector('.mb-3:has(#id_department)');
+    const programDiv = document.querySelector('.mb-3:has(#id_program)');
+    const departmentSelect = document.getElementById('id_department');
+    const programSelect = document.getElementById('id_program');
+
+    console.log('DOM Loaded: admin_create_user.html script initiated.');
+    console.log('Elements found:', { roleSelect, departmentSelect, programSelect });
+
+    function toggleDepartmentAndProgramFields() {
+        const selectedRole = roleSelect.value;
+        console.log('Role changed to:', selectedRole);
+        // Show department and program fields for teacher, student, AND department_manager
+        if (selectedRole === 'teacher' || selectedRole === 'student' || selectedRole === 'department_manager') {
+            departmentDiv.style.display = 'block';
+            programDiv.style.display = 'block';
+            departmentSelect.setAttribute('required', 'required');
+            // Program is required for Teachers and Students, but not necessarily for Department Managers
+            if (selectedRole === 'teacher' || selectedRole === 'student') {
+                programSelect.setAttribute('required', 'required');
+            } else {
+                programSelect.removeAttribute('required');
+            }
+        } else {
+            departmentDiv.style.display = 'none';
+            programDiv.style.display = 'none';
+            departmentSelect.removeAttribute('required');
+            programSelect.removeAttribute('required');
+            // Clear selections and reset programs when fields are hidden
+            departmentSelect.value = '';
+            programSelect.innerHTML = '<option value="">Select Program</option>'; // Clear programs and reset default
+        }
+    }
+
+    // Function to fetch and populate programs via AJAX
+    function fetchProgramsByDepartment(departmentId) {
+        console.log('Fetching programs for department ID:', departmentId);
+        // Clear existing options, keep the "Select Program" default
+        programSelect.innerHTML = '<option value="">Select Program</option>';
+
+        if (!departmentId) {
+            console.log('No department ID selected. Skipping AJAX fetch.');
+            return; // No department selected, so no programs to load
+        }
+
+        const url = `{% url 'get_programs_by_department' %}?department_id=${departmentId}`;
+        console.log('AJAX request URL:', url);
+
+        fetch(url)
+            .then(response => {
+                console.log('AJAX Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received programs data:', data);
+                if (data.programs && Array.isArray(data.programs) && data.programs.length > 0) {
+                    data.programs.forEach(program => {
+                        const option = document.createElement('option');
+                        option.value = program.id;
+                        option.textContent = program.name;
+                        programSelect.appendChild(option);
+                    });
+                    console.log('Programs populated successfully.');
+                } else {
+                    console.log('No programs found for this department or data format is unexpected.');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching programs:', error);
+                // Optionally show an error message to the user
+                // alert('Failed to load programs. Please try again.');
+            });
+    }
+
+    // Attach event listeners
+    roleSelect.addEventListener('change', toggleDepartmentAndProgramFields);
+    departmentSelect.addEventListener('change', function() {
+        fetchProgramsByDepartment(this.value);
+    });
+
+    // Initial call to set visibility based on the current role when the page loads
+    toggleDepartmentAndProgramFields();
+
+    // If a department is already selected (e.g., after form submission with validation errors),
+    // load its programs immediately.
+    if (departmentSelect.value) {
+        console.log('Initial department value found on page load. Fetching programs...');
+        fetchProgramsByDepartment(departmentSelect.value);
+    } else {
+        console.log('No initial department selected on page load.');
+    }
+});
+</script>
+{% endblock content %}

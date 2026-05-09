@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Delete Course{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header text-center bg-danger text-white">
+                <h3 class="mb-0">Confirm Course Deletion</h3>
+            </div>
+            <div class="card-body text-center">
+                <p class="lead">Are you sure you want to delete the course "<strong>{{ course.title }} ({{ course.code }})</strong>"?</p>
+                <p class="text-danger">This action cannot be undone and will permanently remove all associated lectures, assignments, submissions, and grades for this course.</p>
+                
+                <form method="post" class="d-inline-block mt-3">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger me-2">Yes, Delete</button>
+                    <a href="{% url 'manage_courses' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

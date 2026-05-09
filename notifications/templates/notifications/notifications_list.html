@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications & Announcements{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Notifications & Announcements</h1>
+
+        {% if notifications %}
+            <div class="list-group">
+                {% for notification in notifications %}
+                    <div class="list-group-item list-group-item-action flex-column align-items-start mb-2 rounded">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ notification.title }}</h5>
+                            <small class="text-muted">Published: {{ notification.created_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1">{{ notification.message }}</p>
+                        <small class="text-info">Target: {{ notification.get_target_roles_display }}</small>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                No active notifications or announcements at this time.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

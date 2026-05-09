@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}My Assigned Courses{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">My Assigned Courses</h1>
+
+        {% if courses %}
+            <div class="list-group">
+                {% for course in courses %}
+                    <a href="{% url 'teacher_course_detail' course.pk %}" class="list-group-item list-group-item-action flex-column align-items-start mb-2 rounded">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ course.title }} ({{ course.code }})</h5>
+                            <small class="text-muted">Created: {{ course.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <p class="mb-1">{{ course.description|truncatechars:100 }}</p>
+                        <small>Students Enrolled: {{ course.approved_students_count }}</small> {# Use the pre-calculated count #}
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                You are not assigned to any courses yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

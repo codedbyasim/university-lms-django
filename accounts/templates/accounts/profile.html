@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<style>
+    /* Explicit z-index to ensure modal is always on top and clickable */
+    .modal {
+        z-index: 1060 !important; 
+    }
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+    .modal-dialog {
+        z-index: 1065 !important; /* Ensuring dialog is above backdrop */
+    }
+    /* Ensure the button within d-flex is clickable */
+    .d-flex button {
+        position: relative;
+        z-index: 9999 !important; /* Extremely high z-index to ensure it's on top */
+        cursor: pointer !important; /* Explicitly show pointer cursor */
+    }
+</style>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-7">
+        <div class="card">
+            <div class="card-header text-center bg-primary text-white">
+                <h3 class="mb-0">My Profile</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}
+                    <div class="text-center mb-4">
+                        {% if user.profile_image %}
+                            <img id="profileDisplayImage" src="{{ user.profile_image.url }}" class="img-fluid rounded-circle" alt="Profile Image" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--nutech-blue); box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);">
+                        {% else %}
+                            <img id="profileDisplayImage" src="https://placehold.co/120x120/6A1B9A/FFFFFF?text={{ user.username|first|upper }}" class="img-fluid rounded-circle" alt="Profile Placeholder" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid var(--nutech-blue); box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);">
+                        {% endif %}
+                        <p class="mt-2 text-muted">Current Profile Image</p>
+                        
+                        {# Button to trigger file input directly #}
+                        <div class="d-flex justify-content-center align-items-center mt-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="changeProfileImageBtn">Change Profile Image</button>
+                        </div>
+                        {# Hidden file input #}
+                        <input type="file" id="imageUpload" class="d-none" accept="image/*">
+                        <input type="hidden" name="cropped_image_data" id="croppedImageData">
+                    </div>
+
+                    {% for field in form %}
+                        {% if field.name != 'profile_image' %} {# Hide original profile_image field #}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </div>
+                </form>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'change_password' %}" class="btn btn-outline-secondary">Change Password</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Cropping Modal -->
+<div class="modal fade" id="imageCropModal" tabindex="-1" aria-labelledby="imageCropModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-maroon text-white">
+                <h5 class="modal-title" id="imageCropModalLabel">Crop Profile Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 d-flex align-items-center">
+                    {# Removed Choose File button as it's triggered by "Change Profile Image" #}
+                    <span id="fileNameDisplay" class="text-muted">No file chosen</span>
+                </div>
+                <div class="img-container" style="max-height: 400px; overflow: hidden;">
+                    <img id="imageToCrop" src="" alt="Image to crop" style="max-width: 100%; display: block;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="cropAndSave">Crop & Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM fully loaded and parsed. Initializing profile page scripts.");
+
+        const changeProfileImageBtn = document.getElementById('changeProfileImageBtn'); // New reference
+        const imageUpload = document.getElementById('imageUpload');
+        const imageToCrop = document.getElementById('imageToCrop');
+        const cropAndSaveBtn = document.getElementById('cropAndSave');
+        const croppedImageDataInput = document.getElementById('croppedImageData');
+        const profileDisplayImage = document.getElementById('profileDisplayImage');
+        const imageCropModalElement = document.getElementById('imageCropModal');
+        const imageCropModal = new bootstrap.Modal(imageCropModalElement);
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        let cropper; // Variable to hold the Cropper instance
+
+        // NEW: Click event on "Change Profile Image" button to trigger hidden file input
+        changeProfileImageBtn.addEventListener('click', function() {
+            console.log("Change Profile Image button clicked. Triggering file input.");
+            imageUpload.click(); // Programmatically click the hidden file input
+            console.log("File input click triggered.");
+        });
+
+        // Event listener for when the modal is fully shown
+        imageCropModalElement.addEventListener('shown.bs.modal', function () {
+            console.log("Image Crop Modal shown. Preparing for image upload.");
+            imageToCrop.src = ''; // Clear any previous image
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+                console.log("Previous cropper instance destroyed.");
+            }
+            // Do NOT reset imageUpload.value here, as it contains the just-selected file
+            // fileNameDisplay.textContent is already set by the change event
+        });
+
+        // Event listener for when the modal is hidden
+        imageCropModalElement.addEventListener('hidden.bs.modal', function () {
+            console.log("Image Crop Modal hidden. Cleaning up.");
+            if (cropper) {
+                cropper.destroy(); // Destroy cropper when modal is hidden
+                cropper = null;
+                console.log("Cropper instance destroyed on modal hide.");
+            }
+            imageToCrop.src = ''; // Clear the image in the modal
+            imageUpload.value = ''; // Clear file input (important for re-selecting same file)
+            fileNameDisplay.textContent = 'No file chosen'; // Reset file name display
+        });
+
+        // Event listener for when a file is selected in the input
+        imageUpload.addEventListener('change', function(e) {
+            console.log("File input change detected.");
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                fileNameDisplay.textContent = files[0].name; // Display selected file name
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    console.log("FileReader loaded image. Initializing Cropper and showing modal.");
+                    imageToCrop.src = event.target.result;
+                    // Ensure previous cropper is destroyed before creating a new one
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    cropper = new Cropper(imageToCrop, {
+                        aspectRatio: 1, // Square aspect ratio for profile pictures
+                        viewMode: 1,    // Restrict the crop box to not exceed the canvas
+                        autoCropArea: 0.8, // Set initial crop area
+                        responsive: true, // Enable responsive mode
+                        ready: function () {
+                            console.log("Cropper is ready.");
+                            imageCropModal.show(); // Show modal only after image is loaded and cropper is ready
+                        },
+                        crop: function(event) {
+                            // console.log("Cropping...", event.detail.x);
+                        }
+                    });
+                };
+                reader.readAsDataURL(files[0]);
+            } else {
+                console.log("No file selected.");
+                fileNameDisplay.textContent = 'No file chosen'; // Reset file name display
+                if (cropper) {
+                    cropper.destroy();
+                    cropper = null;
+                }
+                imageToCrop.src = '';
+            }
+        });
+
+        // Event listener for the "Crop & Save" button
+        cropAndSaveBtn.addEventListener('click', function() {
+            console.log("Crop & Save button clicked.");
+            if (cropper) {
+                try {
+                    const croppedCanvas = cropper.getCroppedCanvas({
+                        width: 200, // Desired width for the cropped image
+                        height: 200, // Desired height for the cropped image
+                    });
+                    const croppedDataURL = croppedCanvas.toDataURL('image/jpeg', 0.9); // Get base64 data, 0.9 quality
+
+                    croppedImageDataInput.value = croppedDataURL; // Set hidden input value
+                    profileDisplayImage.src = croppedDataURL; // Update displayed profile image instantly
+
+                    console.log("Image cropped and data set. Hiding modal.");
+                    imageCropModal.hide(); // Hide the modal
+                    // Cropper instance will be destroyed by the 'hidden.bs.modal' listener
+                } catch (error) {
+                    console.error("Error during cropping:", error);
+                    alert("An error occurred during cropping. Please try again.");
+                }
+            } else {
+                console.warn("Cropper instance not found when trying to crop.");
+                alert("Please select an image first before cropping.");
+            }
+        });
+    });
+</script>
+{% endblock %}

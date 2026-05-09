@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Polls{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Available Polls</h1>
+
+        <h3 class="mt-5">Active Polls (Vote Now!)</h3>
+        {% if active_polls %}
+            <div class="list-group">
+                {% for poll in active_polls %}
+                    <a href="{% url 'vote_in_poll' poll.pk %}" class="list-group-item list-group-item-action flex-column align-items-start mb-2 rounded">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ poll.question }}</h5>
+                            <small class="text-muted">Created: {{ poll.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        {% if poll.end_date %}
+                            <small class="text-danger">Voting ends: {{ poll.end_date|date:"M d, Y H:i" }}</small>
+                        {% else %}
+                            <small class="text-muted">No end date specified.</small>
+                        {% endif %}
+                        <p class="mb-1">Click to cast your vote!</p>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                No active polls available for voting at the moment.
+            </div>
+        {% endif %}
+
+        <h3 class="mt-5">Completed or Voted Polls (View Results)</h3>
+        {% if completed_or_voted_polls %}
+            <div class="list-group">
+                {% for poll in completed_or_voted_polls %}
+                    <a href="{% url 'poll_results' poll.pk %}" class="list-group-item list-group-item-action flex-column align-items-start mb-2 rounded">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ poll.question }}</h5>
+                            <small class="text-muted">Created: {{ poll.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        {% if poll.end_date and poll.end_date < now %}
+                            <small class="text-success">Poll Ended: {{ poll.end_date|date:"M d, Y H:i" }}</small>
+                        {% elif poll.has_voted %} {# Use the new has_voted attribute #}
+                            <small class="text-primary">You have voted in this poll.</small>
+                        {% endif %}
+                        <p class="mb-1">Click to view results.</p>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                No completed polls or polls you have voted in.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

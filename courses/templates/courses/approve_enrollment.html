@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Approve Enrollments{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Approve Student Enrollments</h1>
+
+        {% if pending_enrollments %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Requested At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in pending_enrollments %}
+                        <tr>
+                            <td>{{ enrollment.student.username }}</td>
+                            <td>{{ enrollment.course.title }} ({{ enrollment.course.code }})</td>
+                            <td>{{ enrollment.enrolled_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="enrollment_id" value="{{ enrollment.pk }}">
+                                    <button type="submit" name="action" value="approve" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                                <form method="post" class="d-inline ms-2">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="enrollment_id" value="{{ enrollment.pk }}">
+                                    <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger">Reject</button> {# Changed btn-warning to btn-danger for rejection #}
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                No pending enrollment requests.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

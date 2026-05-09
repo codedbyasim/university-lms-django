@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4 align-items-center">
+        <div class="col-auto">
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" class="img-fluid rounded-circle" alt="Profile Image" style="width: 90px; height: 90px; object-fit: cover; border: 3px solid var(--nutech-blue); box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);">
+            {% else %}
+                <img src="https://placehold.co/90x90/6A1B9A/FFFFFF?text={{ user.username|first|upper }}" class="img-fluid rounded-circle" alt="Profile Placeholder" style="width: 90px; height: 90px; object-fit: cover; border: 3px solid var(--nutech-blue); box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);">
+            {% endif %}
+        </div>
+        <div class="col">
+            <h1 class="mb-0">Admin Dashboard</h1>
+            <p class="lead mb-0">Welcome, {{ user.username }}! Here you can manage the LMS.</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">User Management</h5>
+                    <p class="card-text">Create new user accounts for teachers and students.</p>
+                    <a href="{% url 'admin_create_user' %}" class="btn btn-primary btn-sm">Create New User</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Course Management</h5>
+                    <p class="card-text">Create, view, and manage courses.</p>
+                    <a href="{% url 'create_course' %}" class="btn btn-primary btn-sm mb-2">Create Course</a>
+                    <a href="{% url 'manage_courses' %}" class="btn btn-secondary btn-sm">Manage Courses</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Enrollment Approval</h5>
+                    <p class="card-text">Approve or reject student course enrollments.</p>
+                    <a href="{% url 'approve_enrollment' %}" class="btn btn-primary btn-sm">Approve Enrollments</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Poll Management</h5>
+                    <p class="card-text">Create polls and view results.</p>
+                    <a href="{% url 'create_poll' %}" class="btn btn-primary btn-sm mb-2">Create Poll</a>
+                    <a href="{% url 'poll_results_admin' %}" class="btn btn-secondary btn-sm">View Poll Results</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Notifications</h5>
+                    <p class="card-text">Create and manage system-wide notifications.</p>
+                    <a href="{% url 'create_notification' %}" class="btn btn-primary btn-sm">Create Notification</a>
+                </div>
+            </div>
+        </div>
+        <!-- Add more admin features as needed -->
+    </div>
+</div>
+{% endblock %}

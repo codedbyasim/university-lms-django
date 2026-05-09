@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }} - Teacher View{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">{{ course.title }} ({{ course.code }})</h1>
+        <p class="lead">{{ course.description }}</p>
+        <p><strong>Assigned Teacher:</strong> {{ course.teacher.username }}</p>
+        <a href="{% url 'view_enrolled_students' course.pk %}" class="btn btn-info btn-sm mb-3">View Enrolled Students</a>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-maroon text-white"> {# Changed bg-success to bg-maroon #}
+                <h5>Upload New Lecture</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in lecture_form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" name="upload_lecture" class="btn btn-primary">Upload Lecture</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-maroon text-white"> {# Changed bg-success to bg-maroon #}
+                <h5>Create New Assignment</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in assignment_form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" name="create_assignment" class="btn btn-primary">Create Assignment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-maroon text-white"> {# Changed bg-secondary to bg-maroon #}
+                <h5>Lectures</h5>
+            </div>
+            <div class="card-body">
+                {% if lectures %}
+                    <ul class="list-group">
+                        {% for lecture in lectures %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ lecture.title }}</strong>
+                                    <p class="mb-0 text-muted">{{ lecture.description|truncatechars:70 }}</p>
+                                    {% if lecture.file %}
+                                        <a href="{{ lecture.file.url }}" target="_blank" class="badge bg-secondary text-decoration-none">Download File</a> {# Changed bg-info to bg-secondary #}
+                                    {% endif %}
+                                    {% if lecture.video_url %}
+                                        <a href="{{ lecture.video_url }}" target="_blank" class="badge bg-primary text-decoration-none ms-2">Watch Video</a>
+                                    {% endif %}
+                                </div>
+                                <span class="badge bg-light text-dark">Uploaded: {{ lecture.uploaded_at|date:"M d, Y" }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No lectures uploaded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-maroon text-white"> {# Changed bg-secondary to bg-maroon #}
+                <h5>Assignments</h5>
+            </div>
+            <div class="card-body">
+                {% if assignments %}
+                    <ul class="list-group">
+                        {% for assignment in assignments %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ assignment.title }}</strong>
+                                    <p class="mb-0 text-muted">{{ assignment.description|truncatechars:70 }}</p>
+                                    <small class="text-danger">Due: {{ assignment.due_date|date:"M d, Y H:i" }}</small>
+                                    <br>
+                                    <small class="text-muted">Max Marks: {{ assignment.max_marks }}</small>
+                                </div>
+                                <a href="{% url 'view_assignment_submissions' assignment.pk %}" class="btn btn-sm btn-primary">View Submissions</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No assignments created yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

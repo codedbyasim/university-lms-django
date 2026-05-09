@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Assignments & Submissions{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Assignments & Submissions</h1>
+        <p class="lead">Overview of assignments you've created and their submission counts.</p>
+
+        {% if assignments %}
+            <div class="list-group">
+                {% for assignment in assignments %}
+                    <div class="list-group-item list-group-item-action flex-column align-items-start mb-2 rounded">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ assignment.title }} ({{ assignment.course.code }})</h5>
+                            <small class="text-muted">Due: {{ assignment.due_date|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1">{{ assignment.description|truncatechars:100 }}</p>
+                        <small>Total Submissions: <strong>{{ assignment.submission_count }}</strong></small>
+                        <div class="mt-2">
+                            <a href="{% url 'view_assignment_submissions' assignment.pk %}" class="btn btn-sm btn-primary">View Submissions</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                You have not created any assignments yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
