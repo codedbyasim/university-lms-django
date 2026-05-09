@@ -2,6 +2,9 @@
 
 A comprehensive, role-based Learning Management System built with **Django 5.0** and **PostgreSQL**. This platform facilitates academic management by organizing departments, programs, courses, and user interactions (assignments, grading, polling, and notifications).
 
+### 🎥 Live Demo
+<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7359905851928625152?collapsed=1" height="541" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+
 ## 🚀 Features
 
 *   **Role-Based Access Control:** Custom user model supporting `Admin`, `Teacher`, `Student`, and `Department Manager` roles.
